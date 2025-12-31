@@ -1,1 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Indo ↔ Mandarin Casual Translator</title>
 
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#6C63FF" />
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+      padding: 16px;
+      color: #222;
+    }
+    .card {
+      max-width: 500px;
+      margin: auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    textarea, input {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      padding: 12px;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    button {
+      width: 100%;
+      background: #6C63FF;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .output {
+      margin-top: 16px;
+      background: #f0f1ff;
+      padding: 12px;
+      border-radius: 12px;
+      min-height: 60px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #888;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>Indo ↔ Mandarin</h1>
+    <p class="subtitle">Casual / Natural Translator</p>
+
+    <input id="apiKey" type="password" placeholder="Gemini API Key" />
+
+    <textarea id="inputText" rows="4" placeholder="Ketik teks di sini..."></textarea>
+
+    <button onclick="translate()">Translate</button>
+
+    <div id="output" class="output"></div>
+
+    <footer>
+      App dibuat oleh <strong>fawzy Hidayat</strong>
+    </footer>
+  </div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+
+    async function translate() {
+      const key = document.getElementById('apiKey').value;
+      const text = document.getElementById('inputText').value;
+      const output = document.getElementById('output');
+
+      output.innerText = 'Menerjemahkan...';
+
+      const prompt = `
+You are a bilingual native speaker of Indonesian and Mandarin (Simplified Chinese).
+Automatically detect the input language.
+Indonesian → natural everyday Mandarin (自然口语).
+Mandarin → natural casual Indonesian.
+Avoid formal language. Do not translate word-for-word.
+Output only the translation.
+
+Text:
+${text}
+`;
+
+      const res = await fetch(
+        'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key=' + key,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        }
+      );
+
+      const data = await res.json();
+      output.innerText =
+        data.candidates?.[0]?.content?.parts?.[0]?.text || 'Gagal menerjemahkan';
+    }
+  </script>
+</body>
+  </html>
